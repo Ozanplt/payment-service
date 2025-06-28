@@ -1,0 +1,41 @@
+services:
+  payment-db:
+    image: postgres:14
+    container_name: payment-db
+    environment:
+      - POSTGRES_USER=pay
+      - POSTGRES_PASSWORD=pay
+      - POSTGRES_DB=paymentdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - payment-data:/var/lib/postgresql/data
+    networks:
+      - shared-net
+
+  payment-service:
+    build: .
+    container_name: payment-service
+    environment:
+      - SPRING_APPLICATION_NAME=payment-service
+      - SERVER_PORT=8080
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-db:5432/paymentdb
+      - SPRING_DATASOURCE_USERNAME=pay
+      - SPRING_DATASOURCE_PASSWORD=pay
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+    ports:
+      - "8080:8080"
+    depends_on:
+      - payment-db
+    networks:
+      - shared-net
+
+volumes:
+  payment-data:
+
+networks:
+  shared-net:
+    external: true
